@@ -1,17 +1,22 @@
+from os import getenv
+
 import requests
 from flask import Flask, render_template, request
+from dotenv import load_dotenv
+
 import psycopg2
+import psycopg2.extras
+
+
+load_dotenv()
 
 
 app = Flask(__name__)
-
-# КОД НИЖЕ ВЗЯТ ИЗ ПРЕДЫДУЩЕЙ ПРАКТИЧЕСКОЙ РАБОТЫ
-
 conn = psycopg2.connect(
-	database="service_db", user="postgres", password="password",
-	host="localhost", port="5432"
+	database=getenv("PG_DATABASE"), user=getenv("PG_USER"), password=getenv("PG_PASSWORD"),
+	host=getenv("PG_HOST"), port=getenv("PG_PORT")
 )
-cursor = conn.cursor()
+cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 @app.route('/login/', methods=['GET'])
@@ -21,12 +26,15 @@ def index():
 
 @app.route('/login/', methods=['POST'])
 def login():
-	username = request.form.get('username')
-	password = request.form.get('password')
+	username = request.form.get('username', '')
+	password = request.form.get('password', '')
+
+	if not username or not password:
+		return render_template('login.html', error="Please, fill all the inputs")
 
 	cursor.execute('SELECT * FROM service.users WHERE login=%s AND password=%s', (str(username), str(password)))
-	records = list(cursor.fetchall())
+	record = cursor.fetchone()
 
-	return render_template('account.html', full_name=records[0][1])
-
-# YOUR CODE HERE
+	if record:
+		return render_template('account.html', **record)
+	return render_template('login.html', error="User with given username does not exist")
