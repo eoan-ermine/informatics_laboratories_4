@@ -38,3 +38,23 @@ def login():
 	if record:
 		return render_template('account.html', **record)
 	return render_template('login.html', error="User with given username does not exist")
+
+
+@app.route('/registration/', methods=['GET'])
+def registration_page():
+	return render_template('registration.html')
+
+
+@app.route('/registration/', methods=['POST'])
+def registration():
+	name = request.form.get('name', '')
+	login = request.form.get('login', '')
+	password = request.form.get('password', '')
+
+	cursor.execute(
+		'INSERT INTO service.users(full_name, login, password) VALUES (%s, %s, %s)',
+		(str(name), str(login), str(password))
+	)
+	conn.commit()
+
+	return render_template('/login/')
