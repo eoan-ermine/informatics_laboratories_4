@@ -47,9 +47,9 @@ def registration_page():
 
 @app.route('/registration/', methods=['POST'])
 def registration():
-	name = request.form.get('name', '')
-	login = request.form.get('login', '')
-	password = request.form.get('password', '')
+	name = request.form.get('name', '').strip()
+	login = request.form.get('login', '').strip()
+	password = request.form.get('password', '').strip()
 
 	if not name or not login or not password:
 		return render_template('registration.html', error="Please, fill all the inputs")
